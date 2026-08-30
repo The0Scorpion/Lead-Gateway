@@ -1,0 +1,25 @@
+[
+  {
+    "step": "Canonical CRM Route",
+    "url": "https://api.twenty.com/rest/people",
+    "detail": "Using the known-good twenty endpoint."
+  },
+  {
+    "step": "HTTP Dispatch Attempt 1",
+    "url": "https://api.twenty.com/rest/people"
+  },
+  {
+    "step": "Self-Correction Triggered",
+    "error_code": 400,
+    "error": "Twenty rejected the lead (HTTP 400): The destination rejected the lead. Technical details: {\"statusCode\":400,\"error\":\"Error\",\"messages\":[\"Provided phone number is invalid (555) 888-9999\"],\"code\":\"INVALID_PHONE_NUMBER\"}",
+    "response": "{\"statusCode\":400,\"error\":\"Error\",\"messages\":[\"Provided phone number is invalid (555) 888-9999\"],\"code\":\"INVALID_PHONE_NUMBER\"}"
+  },
+  {
+    "step": "HTTP Dispatch Attempt 2",
+    "url": "https://api.twenty.com/rest/people"
+  },
+  {
+    "step": "Dispatch Success",
+    "status_code": 201
+  }
+]

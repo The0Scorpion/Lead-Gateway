@@ -55,17 +55,31 @@ This changelog tells the story of how the solution evolved, highlighting importa
 | **Iteration 3 (Removed)** | Allowed the agent to guess the CRM's API endpoint URL purely from training data. | Agent hallucinated the endpoint as `api.example.com`, causing a fatal `NameResolutionError` / DNS failure. | **Removed.** Small models cannot reliably memorize exact URLs. |
 | **Iteration 4** | Hardcoded an "API Endpoint Directory" injected into the prompt. | Agent reliably mapped the messy payload and routed successfully to the exact canonical URL provided. | Grounding the agent's creativity with strict routing boundaries prevents fatal HTTP resolution errors. |
 | **Iteration 5** | Integrated DuckDuckGo web search tool. | For unknown CRMs, the agent successfully scraped live docs to find onboarding steps and endpoints. | Kept. Greatly expanded the system's flexibility without hardcoding every CRM in existence. |
-| **Final** | Added SQLite Agent Memory & Human-in-the-Loop Quarantine Queue. | Repeat payloads processed instantly via cache. Unrecoverable API errors were safely parked for manual review. | Identified the main contribution: combining autonomous reasoning with safe, controlled execution boundaries.
-
- |
+| **Iteration 6** | Added canonical CRM enforcement and placeholder URL rejection. | Requests to `example.com`, `localhost`, and similar fake domains were blocked before any network call. | Kept. This eliminates the most dangerous form of model hallucination. |
+| **Iteration 7** | Added env-driven Airtable schema mapping. | Airtable columns now map from `AIRTABLE_FIELD_NAMES` instead of a rigid hardcoded field order. | Kept. This makes the system portable across different Airtable base schemas. |
+| **Iteration 8** | Added CRM-aware payload normalization for Twenty and auth retention across retries. | Twenty rejected nested `name`/`emails`/`phones` objects until the payload was reconstructed correctly; bearer tokens were preserved during retry. | Kept. Correct payload shape and auth continuity are critical for successful lead creation. |
+| **Iteration 9** | Added doc-driven retries for unknown CRMs with a 5-attempt cap and live doc refresh. | The agent re-read documentation between attempts and tried new endpoints instead of repeating stale guesses. | Kept. This is the safest path for supporting unfamiliar CRM integrations. |
+| **Final** | Added SQLite Agent Memory, quarantine handling, and strict validation for both endpoint and payload contracts. | Repeat payloads processed faster, real values survived retries, and unrecoverable errors were safely parked for manual review. | Final architecture combines autonomous reasoning with safe, controlled execution boundaries. |
 
 ---
 
 ## 4. Main Failure Mode & Hot Take
 
-**The Failure Mode:** When relying entirely on the LLM to figure out where to send the data, the agent hallucinated the API endpoint. We observed a deterministic bug where the dispatcher generated the URL `[https://api.example.com/resource](https://api.example.com/resource)`. This resulted in a fatal network failure: `Max retries exceeded... Failed to resolve 'api.example.com' ([Errno 11001] getaddrinfo failed)`. The agent could not recover from a DNS failure.
+**The Failure Mode:** The original system could fail in two different ways: endpoint hallucination and payload-schema mismatch. The most obvious issue was the model inventing placeholder URLs such as `https://api.example.com/...` and submitting leads to a domain that cannot resolve. We also discovered a more subtle but equally harmful issue: for Twenty, the integration could succeed on the HTTP call yet create an empty lead because the payload shape was wrong or the actual values were lost during the retry/correction loop.
 
-**The Hot Take (Insight):** Local models (like 14B parameters) are incredible at semantic reasoning, autonomous JSON structuring, and self-correcting `400 Validation` errors. However, they are terrible at memorizing exact canonical URLs. If you want a reliable agentic workflow, you must **ground the agent** by strictly enforcing the destination URL via an explicit "API Reference Directory" or a live Web Search Tool. Let the LLM handle the dynamic data structuring, but lock down the network path.
+**The Hot Take (Insight):** Local models are very good at semantic mapping and error recovery, but they are not reliable enough to memorize exact canonical CRM URLs or produce the precise nested object schema used by modern CRMs. The safe design is to combine: strict endpoint validation, live doc search when the CRM is unknown, schema-aware payload rebuilding, preserved bearer auth across retries, and a human review queue when recovery hits its limit. Let the model reason about mapping, but keep the network path and final payload contract grounded in real evidence.
+
+### Latest reliability improvements
+
+The current implementation includes several safeguards added after the original prototype:
+
+* **Environment-aware Airtable field mapping:** `AIRTABLE_FIELD_NAMES` is read from the environment and mapped to the actual Airtable schema instead of assuming a fixed order.
+* **Placeholder URL blocking:** requests to `example.com`, `localhost`, and other fake/test domains are rejected before any HTTP call is made.
+* **Known CRM route enforcement:** HubSpot and Twenty are forced through their canonical routes instead of trusting free-form model output.
+* **Docs-based fallback for unknown CRMs:** when a CRM is not recognized, the system searches the web, reads documentation, picks a valid endpoint candidate, and retries up to five times with refreshed docs.
+* **Auth preservation on retry:** bearer tokens remain attached through the self-correction loop so retrying does not silently lose credentials.
+* **Schema normalization for Twenty:** the dispatcher rebuilds `name`, `emails`, and `phones` in the exact nested structure expected by Twenty, preserving real lead data instead of replacing them with blank objects.
+* **Regression coverage:** the dispatcher suite verifies Airtable env-based mapping, endpoint enforcement, auth retention, retry loop behavior, and payload-shape correctness.
 
 ---
 

@@ -1,0 +1,36 @@
+[
+  {
+    "step": "Memory Lookup",
+    "status": "MISS",
+    "detail": "Executing semantic mapping via LLM..."
+  },
+  {
+    "step": "LLM Initial Request Formulation",
+    "url": "https://api.twenty.com/rest/people",
+    "payload": {
+      "first_name": "Marcus",
+      "last_name": "Vance",
+      "phone": "(555) 888-9999",
+      "address": "844 Industrial Pkwy, Cleveland, OH",
+      "notes": "Property needs extensive roof repairs. Motivated seller looking for a 14-day close."
+    }
+  },
+  {
+    "step": "HTTP Dispatch Attempt 1",
+    "url": "https://api.twenty.com/rest/people"
+  },
+  {
+    "step": "Self-Correction Triggered",
+    "error_code": 400,
+    "error": "Twenty rejected the lead (HTTP 400): The destination rejected the lead. Technical details: {\"statusCode\":400,\"error\":\"BadRequestException\",\"messages\":[\"Object person doesn't have any \\\"first_name\\\" field.\"]}",
+    "response": "{\"statusCode\":400,\"error\":\"BadRequestException\",\"messages\":[\"Object person doesn't have any \\\"first_name\\\" field.\"]}"
+  },
+  {
+    "step": "HTTP Dispatch Attempt 2",
+    "url": "https://api.example.com/submit_lead"
+  },
+  {
+    "step": "Network Failure",
+    "error": "Twenty could not be reached: HTTPSConnectionPool(host='api.example.com', port=443): Max retries exceeded with url: /submit_lead (Caused by NameResolutionError(\"HTTPSConnection(host='api.example.com', port=443): Failed to resolve 'api.example.com' ([Errno 11001] getaddrinfo failed)\"))"
+  }
+]

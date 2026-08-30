@@ -93,7 +93,7 @@
         <!-- HUMAN-IN-THE-LOOP QUARANTINE QUEUE -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-100 fade-in delay-3">
             <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center justify-between">
-                <span>🛡️ Human-in-the-Loop Review Queue (Quarantine)</span>
+                <span> Human-in-the-Loop Review Queue (Quarantine)</span>
                 <button onclick="loadQuarantine()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded transition">Refresh Queue</button>
             </h2>
             <p class="text-sm text-gray-600 mb-4">Leads that fail destination validation or exhaust retry limits are quarantined here for manual review before re-dispatching.</p>
@@ -112,7 +112,7 @@
                     <h3 class="font-semibold text-gray-800 text-sm mb-2">Endpoint Details</h3>
                     <div class="flex items-center space-x-2 text-sm">
                         <span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded text-xs">POST</span>
-                        <code class="text-blue-600 break-all">http://localhost:8000/api/v1/lead/<span class="text-red-500 font-bold">{LEAD_KEY}</span></code>
+                        <code class="text-blue-600 break-all">https://lead_gateway/api/v1/lead/<span class="text-red-500 font-bold">{LEAD_KEY}</span></code>
                     </div>
                     <p class="text-xs text-gray-500 mt-3 leading-relaxed">
                         The agentic backend accepts <strong>any</strong> flat JSON structure. It will autonomously normalize keys (e.g., matching `contact_cell` to `phone`) and format them correctly for the destination CRM.
@@ -124,7 +124,7 @@
                     <div class="flex justify-between items-center mb-2">
                         <span class="text-gray-400 text-xs font-semibold tracking-wider">cURL Example</span>
                     </div>
-                    <pre class="text-sm font-mono text-green-400"><code class="language-bash">curl -X POST "http://localhost:8000/api/v1/lead/<span class="text-yellow-300">key_123456</span>" \
+                    <pre class="text-sm font-mono text-green-400"><code class="language-bash">curl -X POST "https://lead_gateway/api/v1/lead/<span class="text-yellow-300">key_123456</span>" \
 -H "Content-Type: application/json" \
 -d '{
   "name": "Jane Doe",
