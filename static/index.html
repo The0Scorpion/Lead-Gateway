@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lead Gateway | Autonomous Engine</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); min-height: 100vh; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
+        .delay-1 { animation-delay: 0.1s; } .delay-2 { animation-delay: 0.2s; } .delay-3 { animation-delay: 0.3s; }
+        @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+        .interactive-card { transition: transform 0.2s, box-shadow 0.2s; }
+        .interactive-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+    </style>
+</head>
+<body class="p-4 md:p-8 font-sans text-gray-800">
+    <div class="max-w-6xl mx-auto space-y-8">
+        
+        <!-- Header -->
+        <header class="text-center mb-8 fade-in">
+            <h1 class="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                Agentic Universal Lead Gateway
+            </h1>
+            <p class="text-gray-500 mt-2">Autonomous CRM Routing, Memory Caching & Human-in-the-Loop Oversight</p>
+        </header>
+        
+        <!-- GRID: ONBOARDING & TESTER -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <!-- ONBOARDING CARD -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 interactive-card fade-in delay-1">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <span class="bg-blue-100 text-blue-600 p-2 rounded-lg mr-3">➕</span> Create New Route
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Client / Wholesaler Name</label>
+                        <input type="text" id="clientName" placeholder="e.g. Alpha Investments" class="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Destination CRM</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="crmName" placeholder="e.g. HubSpot, Pipedrive" class="w-full border p-2.5 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                            <button id="searchBtn" onclick="fetchInstructions()" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-medium transition">Continue</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="agentInstructions" class="hidden mt-6 p-4 bg-blue-50/50 border border-blue-100 rounded-lg">
+                    <h3 class="font-bold text-blue-900 text-sm">Agent Integration Steps</h3>
+                    <div id="instructionText" class="text-sm mt-2 text-gray-700 whitespace-pre-line leading-relaxed"></div>
+                    <div class="mt-4 pt-4 border-t border-blue-200">
+                        <label class="block text-sm font-semibold text-gray-800 mb-1">Access Token / Webhook:</label>
+                        <input type="text" id="apiKeyInput" placeholder="Paste token here..." class="w-full border p-2.5 rounded-lg bg-white outline-none">
+                        <button onclick="generateRoute()" class="mt-3 bg-green-600 hover:bg-green-700 text-white font-semibold px-5 py-2.5 rounded-lg w-full transition">Generate Lead Key</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MANUAL LEAD TESTER -->
+            <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 interactive-card fade-in delay-2">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <span class="bg-indigo-100 text-indigo-600 p-2 rounded-lg mr-3">⚡</span> Manual Lead Tester & Trajectory Viewer
+                </h2>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Target Route</label>
+                        <select id="testLeadKey" class="w-full border p-2.5 rounded-lg bg-white outline-none cursor-pointer">
+                            <option value="">-- Load routes first --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Raw Messy JSON Payload</label>
+                        <textarea id="testPayload" rows="4" class="w-full border p-2.5 rounded-lg font-mono text-xs bg-gray-50 outline-none">{
+  "seller_first_name": "Marcus",
+  "seller_last_name": "Vance",
+  "contact_cell": "555-888-9999",
+  "email": "None",
+  "prop_loc": "844 Industrial Pkwy, Cleveland, OH",
+  "asking_price": "$150k cash",
+  "distress_notes": "Property needs extensive roof repairs. Motivated seller looking for a 14-day close."
+}</textarea>
+                    </div>
+                    <button onclick="sendManualLead()" id="sendTestBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2.5 rounded-lg w-full transition">Dispatch & View Trajectory</button>
+                    
+                    <!-- Response & Trajectory Drawer -->
+                    <div id="testResponse" class="hidden mt-4 p-3 rounded-lg text-xs font-mono whitespace-pre-wrap border overflow-x-auto max-h-48"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HUMAN-IN-THE-LOOP QUARANTINE QUEUE -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-orange-100 fade-in delay-3">
+            <h2 class="text-xl font-bold text-gray-800 mb-2 flex items-center justify-between">
+                <span>🛡️ Human-in-the-Loop Review Queue (Quarantine)</span>
+                <button onclick="loadQuarantine()" class="text-xs bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded transition">Refresh Queue</button>
+            </h2>
+            <p class="text-sm text-gray-600 mb-4">Leads that fail destination validation or exhaust retry limits are quarantined here for manual review before re-dispatching.</p>
+            <div id="quarantineContainer" class="space-y-3">
+                <p class="text-sm text-gray-400 italic">No quarantined leads found.</p>
+            </div>
+        </div>
+         <!-- API DOCUMENTATION -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 fade-in delay-3">
+            <h2 class="text-xl font-bold text-gray-800 mb-2">API Documentation</h2>
+            <p class="text-sm text-gray-600 mb-5">Share these instructions with third-party vendors (like call centers or form builders) to automatically push leads into your Gateway.</p>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                <!-- Endpoint Info -->
+                <div class="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                    <h3 class="font-semibold text-gray-800 text-sm mb-2">Endpoint Details</h3>
+                    <div class="flex items-center space-x-2 text-sm">
+                        <span class="bg-green-100 text-green-700 font-bold px-2 py-1 rounded text-xs">POST</span>
+                        <code class="text-blue-600 break-all">http://localhost:8000/api/v1/lead/<span class="text-red-500 font-bold">{LEAD_KEY}</span></code>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-3 leading-relaxed">
+                        The agentic backend accepts <strong>any</strong> flat JSON structure. It will autonomously normalize keys (e.g., matching `contact_cell` to `phone`) and format them correctly for the destination CRM.
+                    </p>
+                </div>
+
+                <!-- Code Example -->
+                <div class="bg-[#1e1e1e] rounded-lg p-4 shadow-inner overflow-x-auto">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-gray-400 text-xs font-semibold tracking-wider">cURL Example</span>
+                    </div>
+                    <pre class="text-sm font-mono text-green-400"><code class="language-bash">curl -X POST "http://localhost:8000/api/v1/lead/<span class="text-yellow-300">key_123456</span>" \
+-H "Content-Type: application/json" \
+-d '{
+  "name": "Jane Doe",
+  "phone": "555-987-6543",
+  "notes": "Highly motivated."
+}'</code></pre>
+                </div>
+            </div>
+        </div>
+        <!-- DASHBOARD TABLE -->
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 fade-in delay-3">
+            <h2 class="text-xl font-bold text-gray-800 mb-4">Active Lead Routes</h2>
+            <div class="overflow-x-auto rounded-lg border border-gray-200">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 border-b">
+                            <th class="p-3 text-sm font-semibold text-gray-700">Client Name</th>
+                            <th class="p-3 text-sm font-semibold text-gray-700">Destination CRM</th>
+                            <th class="p-3 text-sm font-semibold text-gray-700">Generated Lead Key</th>
+                            <th class="p-3 text-sm font-semibold text-gray-700 text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dashboardTable" class="divide-y divide-gray-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentExpectedFields = [];
+
+        async function fetchInstructions() {
+            const crmName = document.getElementById('crmName').value.trim();
+            if (!crmName) return alert("Please enter a CRM name.");
+            try {
+                const res = await fetch('/api/v1/agent/crm-info', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({crm_name: crmName})
+                });
+                const result = await res.json();
+                currentExpectedFields = result.data.expected_fields || [];
+                document.getElementById('instructionText').innerText = result.data.instructions;
+                document.getElementById('agentInstructions').classList.remove('hidden');
+            } catch (err) { alert("Error: " + err.message); }
+        }
+
+        async function generateRoute() {
+            const clientName = document.getElementById('clientName').value.trim();
+            const crmName = document.getElementById('crmName').value.trim();
+            const webhookUrl = document.getElementById('apiKeyInput').value.trim();
+            if (!clientName || !webhookUrl) return alert("Fill out all fields.");
+
+            try {
+                await fetch('/api/v1/routes', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({client_name: clientName, crm_name: crmName, webhook_url: webhookUrl, target_fields: currentExpectedFields})
+                });
+                document.getElementById('clientName').value = '';
+                document.getElementById('crmName').value = '';
+                document.getElementById('apiKeyInput').value = '';
+                document.getElementById('agentInstructions').classList.add('hidden');
+                loadDashboard();
+            } catch (err) { alert("Failed: " + err.message); }
+        }
+
+        async function deleteRoute(leadKey) {
+            if (!confirm(`Delete route '${leadKey}'?`)) return;
+            await fetch(`/api/v1/routes/${leadKey}`, {method: 'DELETE'});
+            loadDashboard();
+        }
+
+        async function loadDashboard() {
+            const res = await fetch('/api/v1/dashboard/stats');
+            const data = await res.json();
+            const tbody = document.getElementById('dashboardTable');
+            const testSelect = document.getElementById('testLeadKey');
+            tbody.innerHTML = '';
+            testSelect.innerHTML = '<option value="">-- Select a Route --</option>';
+
+            if (!data.active_routes || data.active_routes.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-400">No active routes found.</td></tr>`;
+                return;
+            }
+
+            data.active_routes.forEach(route => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-blue-50/50">
+                        <td class="p-3 font-medium">${route.client_name}</td>
+                        <td class="p-3"><span class="bg-gray-100 px-2 py-1 rounded text-xs uppercase">${route.crm}</span></td>
+                        <td class="p-3"><code class="text-blue-600 bg-blue-50 px-2 py-1 rounded select-all">${route.lead_key}</code></td>
+                        <td class="p-3 text-center">
+                            <button onclick="deleteRoute('${route.lead_key}')" class="text-red-500 hover:text-red-700">Delete</button>
+                        </td>
+                    </tr>`;
+                testSelect.innerHTML += `<option value="${route.lead_key}">${route.client_name} (${route.crm})</option>`;
+            });
+            loadQuarantine();
+        }
+
+        async function loadQuarantine() {
+            const res = await fetch('/api/v1/quarantine');
+            const data = await res.json();
+            const container = document.getElementById('quarantineContainer');
+            container.innerHTML = '';
+
+            if (!data.quarantined_leads || data.quarantined_leads.length === 0) {
+                container.innerHTML = `<p class="text-sm text-gray-400 italic">No quarantined leads pending review.</p>`;
+                return;
+            }
+
+            data.quarantined_leads.forEach(q => {
+                container.innerHTML += `
+                    <div class="p-4 bg-orange-50/50 border border-orange-200 rounded-lg flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <span class="font-bold text-orange-900">${q.client_name} (${q.crm_name})</span>
+                            <p class="text-xs text-red-600 font-mono mt-1">Error: ${q.error_message}</p>
+                            <textarea id="quarantine-payload-${q.id}" class="w-full min-h-32 text-xs font-mono bg-white p-2 rounded mt-2 border border-orange-100">${q.payload}</textarea>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="resendQuarantine(${q.id})" class="bg-green-600 hover:bg-green-700 text-white text-xs px-3 py-1.5 rounded font-medium">Save & Resend</button>
+                            <button onclick="resolveQuarantine(${q.id}, 'rejected')" class="bg-red-600 hover:bg-red-700 text-white text-xs px-3 py-1.5 rounded font-medium">Discard</button>
+                        </div>
+                    </div>`;
+            });
+        }
+
+        async function resolveQuarantine(qid, status) {
+            await fetch(`/api/v1/quarantine/${qid}/resolve`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({status: status})
+            });
+            loadQuarantine();
+        }
+
+        async function resendQuarantine(qid) {
+            const editor = document.getElementById(`quarantine-payload-${qid}`);
+            let payload;
+            try {
+                payload = JSON.parse(editor.value);
+            } catch (e) {
+                alert('The edited lead must be valid JSON.');
+                return;
+            }
+
+            const res = await fetch(`/api/v1/quarantine/${qid}/resend`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({payload: payload})
+            });
+            const result = await res.json();
+            if (!res.ok) {
+                alert(result.detail || 'Resend failed. The lead remains in quarantine.');
+            }
+            loadQuarantine();
+        }
+
+        async function sendManualLead() {
+            const key = document.getElementById('testLeadKey').value;
+            const payloadStr = document.getElementById('testPayload').value;
+            const resBox = document.getElementById('testResponse');
+            if (!key) return alert('Select a route first.');
+
+            let payload;
+            try { payload = JSON.parse(payloadStr); } catch(e) { return alert('Invalid JSON.'); }
+
+            resBox.classList.remove('hidden');
+            resBox.innerText = "Dispatching agent and capturing trajectory trace...";
+            resBox.className = "mt-4 p-3 rounded-lg text-xs font-mono whitespace-pre-wrap border bg-gray-50 text-gray-700";
+
+            try {
+                const res = await fetch(`/api/v1/lead/${key}`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                
+                if (res.ok) {
+                    resBox.classList.add('bg-green-50', 'border-green-200', 'text-green-800');
+                    resBox.innerText = ` DISPATCH SUCCESS:\n\nResponse:\n${JSON.stringify(result.dispatch_response, null, 2)}\n\nAGENT TRAJECTORY LOG:\n${JSON.stringify(result.agent_trajectory, null, 2)}`;
+                } else {
+                    resBox.classList.add('bg-orange-50', 'border-orange-200', 'text-orange-800');
+                    resBox.innerText = ` QUARANTINED (Human Review Required):\n${result.detail}\n\nCheck the Quarantine Queue below.`;
+                    loadQuarantine();
+                }
+            } catch (err) {
+                resBox.classList.add('bg-red-50', 'border-red-200', 'text-red-800');
+                resBox.innerText = ` EXCEPTION: ${err.message}`;
+            }
+        }
+
+        loadDashboard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[
+  {
+    "step": "HubSpot Route Enforcement",
+    "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+    "detail": "Using the official HubSpot contacts endpoint and bearer token auth."
+  },
+  {
+    "step": "HTTP Dispatch Attempt 1",
+    "url": "https://api.hubapi.com/crm/v3/objects/contacts"
+  },
+  {
+    "step": "Dispatch Success",
+    "status_code": 201
+  }
+]
